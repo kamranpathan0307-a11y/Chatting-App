@@ -1,5 +1,5 @@
-import { io } from "socket.io-client";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { io } from 'socket.io-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let socket = null;
 let isConnecting = false;
@@ -21,10 +21,10 @@ export const initializeSocket = async () => {
   isConnecting = true;
   connectionPromise = new Promise(async (resolve, reject) => {
     try {
-      const token = await AsyncStorage.getItem("token");
-      
+      const token = await AsyncStorage.getItem('token');
+
       if (!token) {
-        throw new Error("No token found");
+        throw new Error('No token found');
       }
 
       // Disconnect existing socket if any
@@ -33,29 +33,34 @@ export const initializeSocket = async () => {
         socket = null;
       }
 
-      socket = io("http://192.168.31.235:5000", {
+      socket = io('http://172.20.10.3:5000', {
         auth: {
           token: token,
         },
-        transports: ["websocket", "polling"],
+        transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
+        timeout: 20000,
+        forceNew: true,
       });
 
-      socket.on("connect", () => {
-        console.log("Socket connected:", socket.id);
+      socket.on('connect', () => {
+        console.log('Socket connected:', socket.id);
         isConnecting = false;
         resolve(socket);
       });
 
-      socket.on("disconnect", (reason) => {
-        console.log("Socket disconnected:", reason);
+      socket.on('disconnect', reason => {
+        console.log('Socket disconnected:', reason);
         isConnecting = false;
       });
 
-      socket.on("connect_error", (error) => {
-        console.error("Socket connection error:", error);
+      socket.on('connect_error', error => {
+        console.error('Socket connection error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error type:', error.type);
+        console.error('Error description:', error.description);
         isConnecting = false;
         reject(error);
       });
@@ -66,7 +71,7 @@ export const initializeSocket = async () => {
         resolve(socket);
       }
     } catch (error) {
-      console.error("Error initializing socket:", error);
+      console.error('Error initializing socket:', error);
       isConnecting = false;
       reject(error);
     }
@@ -88,6 +93,110 @@ export const disconnectSocket = () => {
 // Get socket instance (returns null if not initialized)
 export const getSocket = () => {
   return socket;
+};
+
+// Media upload event helpers
+export const emitMediaUploadProgress = (
+  chatId,
+  messageId,
+  uploadId,
+  progress,
+) => {
+  if (socket && socket.connected) {
+    socket.emit('mediaUploadProgress', {
+      chatId,
+      messageId,
+      uploadId,
+      progress,
+    });
+  }
+};
+
+export const emitMediaUploadComplete = (
+  chatId,
+  messageId,
+  uploadId,
+  mediaUrl,
+) => {
+  if (socket && socket.connected) {
+    socket.emit('mediaUploadComplete', {
+      chatId,
+      messageId,
+      uploadId,
+      mediaUrl,
+    });
+  }
+};
+
+export const emitMediaUploadFailed = (chatId, messageId, uploadId, error) => {
+  if (socket && socket.connected) {
+    socket.emit('mediaUploadFailed', {
+      chatId,
+      messageId,
+      uploadId,
+      error,
+    });
+  }
+};
+
+export const emitMessageStatusUpdate = (chatId, messageId, status) => {
+  if (socket && socket.connected) {
+    socket.emit('updateMessageStatus', {
+      chatId,
+      messageId,
+      status,
+    });
+  }
+};
+
+export const emitMediaComposing = (chatId, mediaType, action) => {
+  if (socket && socket.connected) {
+    socket.emit('mediaComposing', {
+      chatId,
+      mediaType,
+      action,
+    });
+  }
+};
+
+// Setup media event listeners
+export const setupMediaEventListeners = callbacks => {
+  if (!socket) return;
+
+  // Media upload progress
+  socket.on(
+    'mediaUploadProgress',
+    callbacks.onMediaUploadProgress || (() => {}),
+  );
+
+  // Media upload complete
+  socket.on(
+    'mediaUploadComplete',
+    callbacks.onMediaUploadComplete || (() => {}),
+  );
+
+  // Media upload failed
+  socket.on('mediaUploadFailed', callbacks.onMediaUploadFailed || (() => {}));
+
+  // Message status updates
+  socket.on(
+    'messageStatusUpdate',
+    callbacks.onMessageStatusUpdate || (() => {}),
+  );
+
+  // Media composing indicators
+  socket.on('userMediaComposing', callbacks.onUserMediaComposing || (() => {}));
+};
+
+// Remove media event listeners
+export const removeMediaEventListeners = () => {
+  if (!socket) return;
+
+  socket.off('mediaUploadProgress');
+  socket.off('mediaUploadComplete');
+  socket.off('mediaUploadFailed');
+  socket.off('messageStatusUpdate');
+  socket.off('userMediaComposing');
 };
 
 // Default export - returns socket or null

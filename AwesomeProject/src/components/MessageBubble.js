@@ -1,18 +1,27 @@
 import React, { memo } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, typography } from '../theme';
 import { formatMessageTime } from '../utils/formatTime';
 import Avatar from './Avatar';
+import ImageMessage from './ImageMessage';
+import VideoMessage from './VideoMessage';
+import AudioMessage from './AudioMessage';
+import DocumentMessage from './DocumentMessage';
 
 const MessageBubble = ({ message, isOutgoing, sender, showAvatar = false }) => {
-  const bubbleStyle = isOutgoing ? styles.outgoingBubble : styles.incomingBubble;
+  const bubbleStyle = isOutgoing
+    ? styles.outgoingBubble
+    : styles.incomingBubble;
   const textStyle = isOutgoing ? styles.outgoingText : styles.incomingText;
-  const containerStyle = isOutgoing ? styles.outgoingContainer : styles.incomingContainer;
+  const containerStyle = isOutgoing
+    ? styles.outgoingContainer
+    : styles.incomingContainer;
 
   const renderStatusIcon = () => {
     if (!isOutgoing) return null;
-    
-    switch (message.status) {
+
+    const status = message.deliveryStatus || message.status;
+    switch (status) {
       case 'sent':
         return <Text style={styles.statusIcon}>✓</Text>;
       case 'delivered':
@@ -24,6 +33,61 @@ const MessageBubble = ({ message, isOutgoing, sender, showAvatar = false }) => {
     }
   };
 
+  const renderMediaContent = () => {
+    const messageType = message.messageType || message.type;
+
+    switch (messageType) {
+      case 'image':
+        return (
+          <ImageMessage
+            imageUrl={message.mediaUrl || message.imageUrl}
+            thumbnail={message.thumbnailUrl}
+            width={message.width}
+            height={message.height}
+            isOutgoing={isOutgoing}
+          />
+        );
+
+      case 'video':
+        return (
+          <VideoMessage
+            videoUrl={message.mediaUrl}
+            thumbnail={message.thumbnailUrl}
+            duration={message.duration}
+            width={message.width}
+            height={message.height}
+            isOutgoing={isOutgoing}
+          />
+        );
+
+      case 'audio':
+        return (
+          <AudioMessage
+            audioUrl={message.mediaUrl}
+            duration={message.duration}
+            isOutgoing={isOutgoing}
+          />
+        );
+
+      case 'document':
+        return (
+          <DocumentMessage
+            documentUrl={message.mediaUrl}
+            fileName={message.fileName}
+            fileSize={message.fileSize}
+            mimeType={message.mimeType}
+            isOutgoing={isOutgoing}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const hasMediaContent = message.messageType && message.messageType !== 'text';
+  const hasTextContent = message.text && message.text.trim().length > 0;
+
   return (
     <View style={containerStyle}>
       {!isOutgoing && showAvatar && (
@@ -34,22 +98,15 @@ const MessageBubble = ({ message, isOutgoing, sender, showAvatar = false }) => {
           style={styles.avatar}
         />
       )}
-      
-      <View style={bubbleStyle}>
-        {message.type === 'image' && message.imageUrl && (
-          <TouchableOpacity activeOpacity={0.9}>
-            <Image
-              source={{ uri: message.imageUrl }}
-              style={styles.messageImage}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        )}
-        
-        {message.text && (
-          <Text style={textStyle}>{message.text}</Text>
-        )}
-        
+
+      <View style={[bubbleStyle, hasMediaContent && styles.mediaBubble]}>
+        {/* Render media content */}
+        {hasMediaContent && renderMediaContent()}
+
+        {/* Render text content if present */}
+        {hasTextContent && <Text style={textStyle}>{message.text}</Text>}
+
+        {/* Footer with timestamp and status */}
         <View style={styles.footer}>
           <Text style={[styles.time, isOutgoing && styles.timeOutgoing]}>
             {formatMessageTime(message.timestamp)}
@@ -104,6 +161,10 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
+  mediaBubble: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
   incomingText: {
     ...typography.body,
     color: colors.messageText,
@@ -111,12 +172,6 @@ const styles = StyleSheet.create({
   outgoingText: {
     ...typography.body,
     color: colors.messageTextOutgoing,
-  },
-  messageImage: {
-    width: 220,
-    height: 160,
-    borderRadius: 6,
-    marginBottom: spacing.xs,
   },
   footer: {
     flexDirection: 'row',
@@ -146,4 +201,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(MessageBubble);
-

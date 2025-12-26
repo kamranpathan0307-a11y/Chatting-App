@@ -1,10 +1,18 @@
 import React from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography } from '../theme';
 import SettingsItem from '../components/SettingsItem';
 import Avatar from '../components/Avatar';
 import { currentUser } from '../data/users';
+import { confirmLogout } from '../utils/auth';
 
 const SettingsScreen = ({ navigation }) => {
   const settingsItems = [
@@ -50,6 +58,13 @@ const SettingsScreen = ({ navigation }) => {
       title: 'Tell a Friend',
       onPress: () => {},
     },
+    {
+      id: 'logout',
+      icon: '🚪',
+      title: 'Logout',
+      onPress: () => confirmLogout(navigation),
+      isDestructive: true,
+    },
   ];
 
   return (
@@ -67,13 +82,13 @@ const SettingsScreen = ({ navigation }) => {
         />
       </View>
 
-      <TouchableOpacity 
-        style={styles.profileCard}
-        activeOpacity={0.7}
-      >
+      <TouchableOpacity style={styles.profileCard} activeOpacity={0.7}>
         <Avatar
           source={currentUser.avatar}
-          initials={currentUser.name.split(' ').map(n => n[0]).join('')}
+          initials={currentUser.name
+            .split(' ')
+            .map(n => n[0])
+            .join('')}
           size={64}
         />
         <View style={styles.profileInfo}>
@@ -85,12 +100,14 @@ const SettingsScreen = ({ navigation }) => {
 
       <FlatList
         data={settingsItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <SettingsItem
             icon={item.icon}
             title={item.title}
             onPress={item.onPress}
+            showArrow={!item.isDestructive}
+            isDestructive={item.isDestructive}
           />
         )}
         contentContainerStyle={styles.listContent}
@@ -174,4 +191,3 @@ const styles = StyleSheet.create({
 });
 
 export default SettingsScreen;
-

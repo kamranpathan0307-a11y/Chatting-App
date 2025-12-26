@@ -1,9 +1,24 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import { colors, spacing, typography } from '../theme';
+import MediaPickerModal from './MediaPickerModal';
 
-const InputBar = ({ onSend, onAttachment, onCamera, onVoice }) => {
+const InputBar = ({
+  onSend,
+  onCameraPress,
+  onImageGalleryPress,
+  onVideoGalleryPress,
+  onAudioPress,
+  onDocumentPress,
+}) => {
   const [message, setMessage] = useState('');
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   const handleSend = () => {
     if (message.trim()) {
@@ -12,37 +27,60 @@ const InputBar = ({ onSend, onAttachment, onCamera, onVoice }) => {
     }
   };
 
+  const handleAttachmentPress = () => {
+    setShowMediaPicker(true);
+  };
+
+  const handleMediaPickerClose = () => {
+    setShowMediaPicker(false);
+  };
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.iconButton} onPress={onAttachment}>
-        <Text style={styles.iconText}>+</Text>
-      </TouchableOpacity>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Message..."
-        placeholderTextColor={colors.textLight}
-        value={message}
-        onChangeText={setMessage}
-        multiline
-        maxLength={1000}
-      />
-      
-      {message.trim() ? (
-        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-          <Text style={styles.sendIcon}>✈</Text>
+    <>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={handleAttachmentPress}
+        >
+          <Text style={styles.iconText}>📎</Text>
         </TouchableOpacity>
-      ) : (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.iconButton} onPress={onCamera}>
-            <Text style={styles.iconText}>📷</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Message..."
+          placeholderTextColor={colors.textLight}
+          value={message}
+          onChangeText={setMessage}
+          multiline
+          maxLength={1000}
+        />
+
+        {message.trim() ? (
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+            <Text style={styles.sendIcon}>✈</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton} onPress={onVoice}>
-            <Text style={styles.iconText}>🎤</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+        ) : (
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.iconButton} onPress={onCameraPress}>
+              <Text style={styles.iconText}>📷</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton} onPress={onAudioPress}>
+              <Text style={styles.iconText}>🎤</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      <MediaPickerModal
+        visible={showMediaPicker}
+        onClose={handleMediaPickerClose}
+        onCameraPress={onCameraPress}
+        onImageGalleryPress={onImageGalleryPress}
+        onVideoGalleryPress={onVideoGalleryPress}
+        onAudioPress={onAudioPress}
+        onDocumentPress={onDocumentPress}
+      />
+    </>
   );
 };
 
@@ -102,4 +140,3 @@ const styles = StyleSheet.create({
 });
 
 export default InputBar;
-

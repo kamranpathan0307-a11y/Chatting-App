@@ -5,21 +5,41 @@ import { colors, spacing, typography } from '../theme';
 import { formatTime } from '../utils/formatTime';
 
 const ChatItem = ({ chat, onPress }) => {
-  const lastMessageText = chat.lastMessage?.text || 'No messages yet';
+  const getLastMessagePreview = () => {
+    if (!chat.lastMessage) return 'No messages yet';
+
+    // Use preview if available, otherwise fall back to text or message type
+    if (chat.lastMessage.preview) {
+      return chat.lastMessage.preview;
+    }
+
+    // Handle different message types
+    switch (chat.lastMessage.messageType) {
+      case 'image':
+        return '📷 Photo';
+      case 'video':
+        return '🎥 Video';
+      case 'audio':
+        return '🎵 Audio';
+      case 'document':
+        return `📄 ${chat.lastMessage.fileName || 'Document'}`;
+      case 'text':
+      default:
+        return chat.lastMessage.text || 'Message';
+    }
+  };
+
+  const lastMessageText = getLastMessagePreview();
   const timeText = formatTime(chat.timestamp);
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.container}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Avatar
-        source={chat.avatar}
-        initials={chat.initials}
-        size={56}
-      />
-      
+      <Avatar source={chat.avatar} initials={chat.initials} size={56} />
+
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.name} numberOfLines={1}>
@@ -27,7 +47,7 @@ const ChatItem = ({ chat, onPress }) => {
           </Text>
           <Text style={styles.time}>{timeText}</Text>
         </View>
-        
+
         <View style={styles.footer}>
           <Text style={styles.message} numberOfLines={1}>
             {lastMessageText}
@@ -102,4 +122,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(ChatItem);
-

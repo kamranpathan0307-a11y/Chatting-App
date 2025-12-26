@@ -2,16 +2,17 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, spacing, typography } from '../theme';
 
-const SettingsItem = ({ 
-  icon, 
-  title, 
-  subtitle, 
-  onPress, 
+const SettingsItem = ({
+  icon,
+  title,
+  subtitle,
+  onPress,
   rightComponent,
-  showArrow = true 
+  showArrow = true,
+  isDestructive = false,
 }) => {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.container}
       onPress={onPress}
       activeOpacity={0.7}
@@ -19,21 +20,19 @@ const SettingsItem = ({
       <View style={styles.iconContainer}>
         <Text style={styles.icon}>{icon}</Text>
       </View>
-      
+
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, isDestructive && styles.destructiveTitle]}>
+          {title}
+        </Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       </View>
-      
+
       {rightComponent && (
-        <View style={styles.rightComponent}>
-          {rightComponent}
-        </View>
+        <View style={styles.rightComponent}>{rightComponent}</View>
       )}
-      
-      {showArrow && (
-        <Text style={styles.arrow}>›</Text>
-      )}
+
+      {showArrow && <Text style={styles.arrow}>›</Text>}
     </TouchableOpacity>
   );
 };
@@ -64,6 +63,9 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '500',
   },
+  destructiveTitle: {
+    color: colors.error || '#FF3B30',
+  },
   subtitle: {
     ...typography.caption,
     color: colors.textLight,
@@ -79,4 +81,3 @@ const styles = StyleSheet.create({
 });
 
 export default SettingsItem;
-

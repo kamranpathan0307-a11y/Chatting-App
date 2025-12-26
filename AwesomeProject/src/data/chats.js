@@ -2,10 +2,29 @@
 import { messages } from './messages';
 import { formatTime } from '../utils/formatTime';
 
-const getLastMessage = (chatId) => {
+const getLastMessage = chatId => {
   const chatMessages = messages[chatId];
   if (!chatMessages || chatMessages.length === 0) return null;
   return chatMessages[chatMessages.length - 1];
+};
+
+const getLastMessagePreview = message => {
+  if (!message) return null;
+
+  // Handle different message types for preview
+  switch (message.messageType) {
+    case 'image':
+      return '📷 Photo';
+    case 'video':
+      return '🎥 Video';
+    case 'audio':
+      return '🎵 Audio';
+    case 'document':
+      return `📄 ${message.fileName || 'Document'}`;
+    case 'text':
+    default:
+      return message.text || '';
+  }
 };
 
 export const chats = [
@@ -13,7 +32,10 @@ export const chats = [
     id: '1',
     name: 'Sanskar Joshi',
     avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-    lastMessage: getLastMessage('1'),
+    lastMessage: {
+      ...getLastMessage('1'),
+      preview: getLastMessagePreview(getLastMessage('1')),
+    },
     unreadCount: 0,
     timestamp: getLastMessage('1')?.timestamp || Date.now(),
     isGroup: false,
@@ -23,7 +45,10 @@ export const chats = [
     id: '2',
     name: 'Akshay Nazare',
     avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
-    lastMessage: getLastMessage('2'),
+    lastMessage: {
+      ...getLastMessage('2'),
+      preview: getLastMessagePreview(getLastMessage('2')),
+    },
     unreadCount: 2,
     timestamp: getLastMessage('2')?.timestamp || Date.now(),
     isGroup: false,
@@ -38,8 +63,9 @@ export const chats = [
       text: 'Files have been uploaded to Drive.',
       senderId: '1',
       timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000,
-      type: 'text',
-      status: 'read',
+      messageType: 'text',
+      deliveryStatus: 'read',
+      preview: 'Files have been uploaded to Drive.',
     },
     unreadCount: 0,
     timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000,
@@ -50,7 +76,10 @@ export const chats = [
     id: '4',
     name: 'Mom ❤️',
     avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
-    lastMessage: getLastMessage('3'),
+    lastMessage: {
+      ...getLastMessage('3'),
+      preview: getLastMessagePreview(getLastMessage('3')),
+    },
     unreadCount: 0,
     timestamp: getLastMessage('3')?.timestamp || Date.now(),
     isGroup: false,
@@ -61,7 +90,10 @@ export const chats = [
     name: 'Sidhhant Gaikwad',
     avatar: null,
     initials: 'JW',
-    lastMessage: getLastMessage('4'),
+    lastMessage: {
+      ...getLastMessage('4'),
+      preview: getLastMessagePreview(getLastMessage('4')),
+    },
     unreadCount: 0,
     timestamp: getLastMessage('4')?.timestamp || Date.now(),
     isGroup: false,
@@ -71,7 +103,10 @@ export const chats = [
     id: '6',
     name: 'Weekend Trip 🏕️',
     avatar: null,
-    lastMessage: getLastMessage('5'),
+    lastMessage: {
+      ...getLastMessage('5'),
+      preview: getLastMessagePreview(getLastMessage('5')),
+    },
     unreadCount: 0,
     timestamp: getLastMessage('5')?.timestamp || Date.now(),
     isGroup: true,
@@ -93,4 +128,3 @@ export const chats = [
 export const getSortedChats = () => {
   return [...chats].sort((a, b) => b.timestamp - a.timestamp);
 };
-
