@@ -1,5 +1,6 @@
 const Chat = require("../models/Chat");
 const Message = require("../models/Message");
+const User = require("../models/User");
 
 // Get all chats for the current user
 exports.getChats = async (req, res) => {
@@ -56,6 +57,83 @@ exports.getOrCreateChat = async (req, res) => {
     res.status(200).json(chat);
   } catch (error) {
     console.error("Error getting/creating chat:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get or create a chat by phone number (for contact intents)
+exports.getOrCreateChatByPhone = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.user?._id;
+    const { phoneNumber } = req.body;
+
+    if (!userId || !phoneNumber) {
+      return res.status(400).json({ message: "Phone number required" });
+    }
+
+    // Normalize phone number
+    const normalizePhone = (phone) => {
+      return phone.replace(/[\s\-\(\)\+]/g, "").replace(/^0+/, "");
+    };
+
+    const normalizedPhone = normalizePhone(phoneNumber);
+
+    // Find user by phone number (try different matching strategies)
+    const users = await User.find({
+      phone: { $exists: true, $ne: null, $ne: "" },
+      _id: { $ne: userId }, // Exclude current user
+    }).select("_id name email phone avatar");
+
+    let targetUser = null;
+    for (const user of users) {
+      const userNormalizedPhone = normalizePhone(user.phone || "");
+      if (userNormalizedPhone === normalizedPhone || 
+          userNormalizedPhone.endsWith(normalizedPhone) || 
+          normalizedPhone.endsWith(userNormalizedPhone)) {
+        targetUser = user;
+        break;
+      }
+    }
+
+    if (!targetUser) {
+      return res.status(404).json({ 
+        message: "User not found", 
+        phoneNumber: phoneNumber,
+        isRegistered: false 
+      });
+    }
+
+    // Check if chat already exists
+    let chat = await Chat.findOne({
+      $and: [
+        { members: { $all: [userId, targetUser._id] } },
+        { members: { $size: 2 } }
+      ]
+    })
+      .populate("members", "name email avatar")
+      .populate("lastMessage");
+
+    if (!chat) {
+      // Create new chat
+      chat = new Chat({
+        members: [userId, targetUser._id],
+      });
+      await chat.save();
+      await chat.populate("members", "name email avatar");
+    }
+
+    res.status(200).json({
+      ...chat.toObject(),
+      isRegistered: true,
+      targetUser: {
+        _id: targetUser._id,
+        name: targetUser.name,
+        phone: targetUser.phone,
+        avatar: targetUser.avatar
+      }
+    });
+  } catch (error) {
+    console.error("Error getting/creating chat by phone:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

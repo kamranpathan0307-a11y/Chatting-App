@@ -33,7 +33,7 @@ export const initializeSocket = async () => {
         socket = null;
       }
 
-      socket = io("http://192.168.31.235:5000", {
+      socket = io("http://172.20.10.3:5000", {
         auth: {
           token: token,
         },

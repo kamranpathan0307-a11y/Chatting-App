@@ -47,7 +47,9 @@ const MainTabs = () => {
         component={ChatsListScreen}
         options={{
           tabBarLabel: 'Chats',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>💬</Text>,
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 24, color }}>💬</Text>
+          ),
         }}
       />
       <Tab.Screen
@@ -55,7 +57,9 @@ const MainTabs = () => {
         component={CallsScreen}
         options={{
           tabBarLabel: 'Calls',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>📞</Text>,
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 24, color }}>📞</Text>
+          ),
         }}
       />
       <Tab.Screen
@@ -63,7 +67,9 @@ const MainTabs = () => {
         component={CommunitiesScreen}
         options={{
           tabBarLabel: 'Communities',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>👥</Text>,
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 24, color }}>👥</Text>
+          ),
         }}
       />
       <Tab.Screen
@@ -71,16 +77,18 @@ const MainTabs = () => {
         component={SettingsScreen}
         options={{
           tabBarLabel: 'Settings',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>⚙️</Text>,
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 24, color }}>⚙️</Text>
+          ),
         }}
       />
     </Tab.Navigator>
   );
 };
 
-const AppNavigator = () => {
+const AppNavigator = React.forwardRef((props, ref) => {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={ref}>
       <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{
@@ -106,7 +114,7 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Signup"
           component={SignupScreen}
-          options={{ 
+          options={{
             headerShown: true,
             title: 'Create Account',
             headerStyle: { backgroundColor: colors.background },
@@ -116,7 +124,7 @@ const AppNavigator = () => {
         <Stack.Screen
           name="ForgotPassword"
           component={ForgotPasswordScreen}
-          options={{ 
+          options={{
             headerShown: true,
             title: 'Reset Password',
             headerStyle: { backgroundColor: colors.background },
@@ -162,7 +170,6 @@ const AppNavigator = () => {
       </Stack.Navigator>
     </NavigationContainer>
   );
-};
+});
 
 export default AppNavigator;
-
